@@ -4,10 +4,17 @@
 import * as React from 'react'
 
 function Board() {
-  const [squares, setSquares] = React.useState(Array(9).fill(null))
-  const [nextValue, setNextValue] = React.useState('X')
-  const [winner, setWinner] = React.useState(null)
-  const [status, setStatus] = React.useState(`Next player: ${nextValue}`)
+  const [squares, setSquares] = React.useState(
+    () => JSON.parse(window.localStorage.getItem('ttt')) || Array(9).fill(null),
+  )
+
+  const nextValue = calculateNextValue(squares)
+  const winner = calculateWinner(squares)
+  const status = calculateStatus(winner, squares, nextValue)
+
+  React.useEffect(() => {
+    window.localStorage.setItem('ttt', JSON.stringify(squares))
+  }, [squares])
 
   function selectSquare(square) {
     if (squares[square] != null || winner != null) {
@@ -18,29 +25,11 @@ function Board() {
 
       squaresCopy[square] = nextValue
       setSquares(squaresCopy)
-      console.log()
-      setNextValue(calculateNextValue(squaresCopy))
-      let gameWinner = calculateWinner(squaresCopy)
-
-      if (gameWinner != null) {
-        setWinner(gameWinner)
-      }
-
-      setStatus(
-        calculateStatus(
-          gameWinner,
-          squaresCopy,
-          calculateNextValue(squaresCopy),
-        ),
-      )
     }
   }
 
   function restart() {
     setSquares(Array(9).fill(null))
-    setWinner(null)
-    setStatus(`Next player: X`)
-    setNextValue('X')
   }
 
   function renderSquare(i) {
@@ -89,7 +78,6 @@ function Game() {
 
 // eslint-disable-next-line no-unused-vars
 function calculateStatus(winner, squares, nextValue) {
-  console.log('passed Next Value: ', nextValue)
   return winner
     ? `Winner: ${winner}`
     : squares.every(Boolean)
@@ -99,15 +87,9 @@ function calculateStatus(winner, squares, nextValue) {
 
 // eslint-disable-next-line no-unused-vars
 function calculateNextValue(squares) {
-  console.log(squares)
   const xSquaresCount = squares.filter(r => r === 'X').length
   const oSquaresCount = squares.filter(r => r === 'O').length
-  console.log('xSquareCount', xSquaresCount)
-  console.log('oSquareCount', oSquaresCount)
-  console.log(
-    'Calculated nextValue',
-    oSquaresCount === xSquaresCount ? 'X' : 'O',
-  )
+
   return oSquaresCount === xSquaresCount ? 'X' : 'O'
 }
 
