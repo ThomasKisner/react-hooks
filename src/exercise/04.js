@@ -2,40 +2,40 @@
 // http://localhost:3000/isolated/exercise/04.js
 
 import * as React from 'react'
+import {useLocalStorageState} from '../utils'
 
 function Board() {
-  const [squares, setSquares] = React.useState(
-    () => JSON.parse(window.localStorage.getItem('ttt')) || Array(9).fill(null),
+  const [state, setState] = useLocalStorageState(
+    'ttt',
+    Array(9).fill(null),
+    'deserialize',
   )
+  const nextValue = calculateNextValue(state)
+  const winner = calculateWinner(state)
+  const status = calculateStatus(winner, state, nextValue)
 
-  const nextValue = calculateNextValue(squares)
-  const winner = calculateWinner(squares)
-  const status = calculateStatus(winner, squares, nextValue)
-
-  React.useEffect(() => {
-    window.localStorage.setItem('ttt', JSON.stringify(squares))
-  }, [squares])
+  useLocalStorageState('ttt', state, 'serialize')
 
   function selectSquare(square) {
-    if (squares[square] != null || winner != null) {
+    if (state[square] != null || winner != null) {
       console.log('Selected an unavailable square')
       return
     } else {
-      let squaresCopy = [...squares]
+      let stateCopy = [...state]
 
-      squaresCopy[square] = nextValue
-      setSquares(squaresCopy)
+      stateCopy[square] = nextValue
+      setState(stateCopy)
     }
   }
 
   function restart() {
-    setSquares(Array(9).fill(null))
+    setState(Array(9).fill(null))
   }
 
   function renderSquare(i) {
     return (
       <button className="square" onClick={() => selectSquare(i)}>
-        {squares[i]}
+        {state[i]}
       </button>
     )
   }
@@ -77,24 +77,24 @@ function Game() {
 }
 
 // eslint-disable-next-line no-unused-vars
-function calculateStatus(winner, squares, nextValue) {
+function calculateStatus(winner, state, nextValue) {
   return winner
     ? `Winner: ${winner}`
-    : squares.every(Boolean)
+    : state.every(Boolean)
     ? `Scratch: Cat's game`
     : `Next player: ${nextValue}`
 }
 
 // eslint-disable-next-line no-unused-vars
-function calculateNextValue(squares) {
-  const xSquaresCount = squares.filter(r => r === 'X').length
-  const oSquaresCount = squares.filter(r => r === 'O').length
+function calculateNextValue(state) {
+  const xSquaresCount = state.filter(r => r === 'X').length
+  const oSquaresCount = state.filter(r => r === 'O').length
 
   return oSquaresCount === xSquaresCount ? 'X' : 'O'
 }
 
 // eslint-disable-next-line no-unused-vars
-function calculateWinner(squares) {
+function calculateWinner(state) {
   const lines = [
     [0, 1, 2],
     [3, 4, 5],
@@ -107,8 +107,8 @@ function calculateWinner(squares) {
   ]
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i]
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a]
+    if (state[a] && state[a] === state[b] && state[a] === state[c]) {
+      return state[a]
     }
   }
   return null
