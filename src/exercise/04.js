@@ -5,16 +5,10 @@ import * as React from 'react'
 import {useLocalStorageState} from '../utils'
 
 function Board() {
-  const [state, setState] = useLocalStorageState(
-    'ttt',
-    Array(9).fill(null),
-    'deserialize',
-  )
+  const [state, setState] = useLocalStorageState('ttt', Array(9).fill(null))
   const nextValue = calculateNextValue(state)
   const winner = calculateWinner(state)
   const status = calculateStatus(winner, state, nextValue)
-
-  useLocalStorageState('ttt', state, 'serialize')
 
   function selectSquare(square) {
     if (state[square] != null || winner != null) {
