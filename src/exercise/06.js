@@ -12,23 +12,26 @@ import {PokemonInfoFallback} from '../pokemon'
 import {PokemonDataView} from '../pokemon'
 
 function PokemonInfo({pokemonName}) {
-  const [status, setStatus] = React.useState('idle')
-  const [pokemonData, setPokemonData] = React.useState(null)
+  const [state, setState] = React.useState({
+    status: 'idle',
+    pokemon: null,
+    error: null,
+  })
+  // const [status, setStatus] = React.useState('idle')
+  // const [pokemonData, setPokemonData] = React.useState(null)
   const [error, setError] = React.useState(null)
 
   React.useEffect(() => {
     if (!pokemonName) {
       return
     } else if (pokemonName) {
-      setStatus('pending')
+      setState({...state, status: 'pending'})
       fetchPokemon(pokemonName)
         .then(response => {
-          setPokemonData(response)
-          setStatus('resolved')
+          setState({status: 'resolved', pokemon: response})
         })
         .catch(error => {
-          setError(error)
-          setStatus('rejected')
+          setState({...state, error: error, status: 'rejected'})
         })
     }
   }, [pokemonName])
@@ -47,19 +50,19 @@ function PokemonInfo({pokemonName}) {
   //   2. pokemonName but no pokemon: <PokemonInfoFallback name={pokemonName} />
   //   3. pokemon: <PokemonDataView pokemon={pokemon} />
 
-  if (status === 'idle') {
+  if (state.status === 'idle') {
     return 'Submit a pokemon'
-  } else if (status === 'rejected') {
+  } else if (state.status === 'rejected') {
     return (
       <div role="alert">
         There was an error:{' '}
-        <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
+        <pre style={{whiteSpace: 'normal'}}>{state.error.message}</pre>
       </div>
     )
-  } else if (status === 'pending') {
+  } else if (state.status === 'pending') {
     return <PokemonInfoFallback name={pokemonName} />
-  } else if (status === 'resolved') {
-    return <PokemonDataView pokemon={pokemonData} />
+  } else if (state.status === 'resolved') {
+    return <PokemonDataView pokemon={state.pokemon} />
   }
 }
 
