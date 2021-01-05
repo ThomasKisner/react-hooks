@@ -7,8 +7,31 @@ import * as React from 'react'
 // PokemonInfoFallback: the thing we show while we're loading the pokemon info
 // PokemonDataView: the stuff we use to display the pokemon info
 import {PokemonForm} from '../pokemon'
+import {fetchPokemon} from '../pokemon'
+import {PokemonInfoFallback} from '../pokemon'
+import {PokemonDataView} from '../pokemon'
 
 function PokemonInfo({pokemonName}) {
+  const [status, setStatus] = React.useState('idle')
+  const [pokemonData, setPokemonData] = React.useState(null)
+  const [error, setError] = React.useState(null)
+
+  React.useEffect(() => {
+    if (!pokemonName) {
+      return
+    } else if (pokemonName) {
+      setStatus('pending')
+      fetchPokemon(pokemonName)
+        .then(response => {
+          setPokemonData(response)
+          setStatus('resolved')
+        })
+        .catch(error => {
+          setError(error)
+          setStatus('rejected')
+        })
+    }
+  }, [pokemonName])
   // 🐨 Have state for the pokemon (null)
   // 🐨 use React.useEffect where the callback should be called whenever the
   // pokemon name changes.
@@ -24,8 +47,20 @@ function PokemonInfo({pokemonName}) {
   //   2. pokemonName but no pokemon: <PokemonInfoFallback name={pokemonName} />
   //   3. pokemon: <PokemonDataView pokemon={pokemon} />
 
-  // 💣 remove this
-  return 'TODO'
+  if (status === 'idle') {
+    return 'Submit a pokemon'
+  } else if (status === 'rejected') {
+    return (
+      <div role="alert">
+        There was an error:{' '}
+        <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
+      </div>
+    )
+  } else if (status === 'pending') {
+    return <PokemonInfoFallback name={pokemonName} />
+  } else if (status === 'resolved') {
+    return <PokemonDataView pokemon={pokemonData} />
+  }
 }
 
 function App() {
